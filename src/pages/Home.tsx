@@ -13,6 +13,7 @@ const inquirySchema = z.object({
   name: z.string().min(2, '이름은 2글자 이상이어야 합니다.'),
   contact: z.string().min(5, '이메일 또는 연락처를 입력해주세요.'),
   message: z.string().min(10, '문의 내용은 10글자 이상이어야 합니다.'),
+  attachment: z.any().optional(),
 });
 
 type InquiryFormValues = z.infer<typeof inquirySchema>;
@@ -30,17 +31,45 @@ const Home = () => {
 
   const onSubmit = async (data: InquiryFormValues) => {
     try {
-      await addDoc(collection(db, 'inquiries'), {
+      const file = data.attachment?.[0];
+      
+      // 1. Save to Firestore for Admin Dashboard
+      const inquiryData: any = {
         name: data.name,
-        email: data.contact.includes('@') ? data.contact : '',
-        phone: !data.contact.includes('@') ? data.contact : '',
         message: data.message,
+        attachmentName: file ? file.name : null,
         status: 'New',
         createdAt: serverTimestamp(),
+      };
+      if (data.contact.includes('@')) {
+        inquiryData.email = data.contact;
+      } else {
+        inquiryData.phone = data.contact;
+      }
+      await addDoc(collection(db, 'inquiries'), inquiryData);
+
+      // 2. Send to Formspree using FormData for file support
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('contact', data.contact);
+      formData.append('message', data.message);
+      formData.append('_subject', `[월드인텍] 새로운 상상력 문의: ${data.name}님`);
+      if (file) {
+        formData.append('attachment', file);
+      }
+
+      await fetch('https://formspree.io/f/mwvwlvlk', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json'
+        },
+        body: formData
       });
+
       toast.success('문의가 성공적으로 접수되었습니다!');
       reset();
     } catch (error) {
+      console.error('Submission error:', error);
       toast.error('문의 접수 중 오류가 발생했습니다.');
     }
   };
@@ -298,6 +327,15 @@ const Home = () => {
                     placeholder="상상하고 계신 프로젝트에 대해 알려주세요."
                   />
                   {errors.message && <p className="text-red-500 text-xs mt-2 ml-1">{errors.message.message}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/40 mb-2">파일 첨부 (선택)</label>
+                  <input
+                    type="file"
+                    {...register('attachment')}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-purple/20 file:text-brand-purple-light hover:file:bg-brand-purple/30 transition-all"
+                  />
                 </div>
 
                 <button

@@ -12,6 +12,7 @@ const inquirySchema = z.object({
   email: z.string().email('유효한 이메일 주소를 입력해주세요.'),
   phone: z.string().optional(),
   message: z.string().min(10, '문의 내용은 10글자 이상이어야 합니다.'),
+  attachment: z.any().optional(),
 });
 
 type InquiryFormValues = z.infer<typeof inquirySchema>;
@@ -23,14 +24,42 @@ const Contact = () => {
 
   const onSubmit = async (data: InquiryFormValues) => {
     try {
+      const file = data.attachment?.[0];
+
+      // 1. Save to Firestore for Admin Dashboard
       await addDoc(collection(db, 'inquiries'), {
-        ...data,
+        name: data.name,
+        email: data.email,
+        phone: data.phone || '',
+        message: data.message,
+        attachmentName: file ? file.name : null,
         status: 'New',
         createdAt: serverTimestamp(),
       });
+
+      // 2. Send to Formspree using FormData
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('email', data.email);
+      formData.append('phone', data.phone || '');
+      formData.append('message', data.message);
+      formData.append('_subject', `[월드인텍] 새로운 견적 문의: ${data.name}님`);
+      if (file) {
+        formData.append('attachment', file);
+      }
+
+      await fetch('https://formspree.io/f/mwvwlvlk', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json'
+        },
+        body: formData
+      });
+
       toast.success('문의가 성공적으로 접수되었습니다. 곧 연락드리겠습니다!');
       reset();
     } catch (error) {
+      console.error('Submission error:', error);
       toast.error('문의 접수 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
@@ -125,6 +154,14 @@ const Contact = () => {
                 placeholder="프로젝트에 대해 자세히 설명해주세요."
               />
               {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white/60 mb-2">파일 첨부 (선택)</label>
+              <input
+                type="file"
+                {...register('attachment')}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-purple/20 file:text-brand-purple-light hover:file:bg-brand-purple/30 transition-all"
+              />
             </div>
             <button
               type="submit"

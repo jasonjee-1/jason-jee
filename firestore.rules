@@ -13,9 +13,10 @@
 // Collection: inquiries
 // Fields:
 //   - name: string (required)
-//   - email: string (required, email)
+//   - email: string (optional, email)
 //   - phone: string (optional)
 //   - message: string (required)
+//   - attachmentName: string (optional)
 //   - status: string (required, enum: New, Contacted, Completed)
 //   - createdAt: timestamp (required)
 //
@@ -79,8 +80,8 @@ service cloud.firestore {
     // Inquiries: Anyone can create, only Admin can read/update
     match /inquiries/{inquiryId} {
       allow create: if true 
-        && request.resource.data.keys().hasAll(['name', 'email', 'message'])
-        && isValidEmail(request.resource.data.email)
+        && request.resource.data.keys().hasAll(['name', 'message', 'status', 'createdAt'])
+        && (!('email' in request.resource.data) || isValidEmail(request.resource.data.email))
         && request.resource.data.name.size() < 100
         && request.resource.data.message.size() < 5000;
       allow read, update, delete: if isAdmin();

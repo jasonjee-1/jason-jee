@@ -24,10 +24,11 @@
         "email": { "type": "string", "format": "email", "description": "이메일" },
         "phone": { "type": "string", "description": "연락처" },
         "message": { "type": "string", "description": "문의 내용" },
+        "attachmentName": { "type": "string", "description": "첨부 파일명" },
         "status": { "type": "string", "enum": ["New", "Contacted", "Completed"], "description": "처리 상태" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "email", "message"]
+      "required": ["name", "message"]
     },
     "SiteConfig": {
       "title": "사이트 설정",

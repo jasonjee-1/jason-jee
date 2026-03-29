@@ -93,6 +93,11 @@ const AdminDashboard = () => {
                   </select>
                 </div>
                 <p className="text-sm text-white/70 line-clamp-2 mb-2">{inquiry.message}</p>
+                {inquiry.attachmentName && (
+                  <div className="flex items-center gap-2 text-[10px] text-brand-purple-light mb-2 bg-brand-purple/10 w-fit px-2 py-1 rounded-md">
+                    <Plus size={10} /> 첨부파일: {inquiry.attachmentName}
+                  </div>
+                )}
                 <div className="text-[10px] text-white/30">
                   {inquiry.createdAt?.toDate().toLocaleString()}
                 </div>
