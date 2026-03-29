@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "PortfolioItem": {
+      "title": "포트폴리오 아이템",
+      "description": "로고 디자인 및 홈페이지 제작 사례",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "description": "프로젝트 제목" },
+        "category": { "type": "string", "enum": ["Logo", "Website", "Branding"], "description": "카테고리" },
+        "imageUrl": { "type": "string", "format": "url", "description": "이미지 URL" },
+        "description": { "type": "string", "description": "상세 설명" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "imageUrl"]
+    },
+    "Inquiry": {
+      "title": "견적 문의",
+      "description": "고객의 견적 및 상담 신청 내역",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "description": "고객명" },
+        "email": { "type": "string", "format": "email", "description": "이메일" },
+        "phone": { "type": "string", "description": "연락처" },
+        "message": { "type": "string", "description": "문의 내용" },
+        "status": { "type": "string", "enum": ["New", "Contacted", "Completed"], "description": "처리 상태" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "message"]
+    },
+    "SiteConfig": {
+      "title": "사이트 설정",
+      "description": "웹사이트의 텍스트, 이미지, 테마 설정",
+      "type": "object",
+      "properties": {
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "aboutText": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "User": {
+      "title": "사용자",
+      "description": "관리자 및 일반 사용자 정보",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      }
+    }
+  },
+  "firestore": {
+    "/portfolio": { "schema": "PortfolioItem", "description": "포트폴리오 목록" },
+    "/inquiries": { "schema": "Inquiry", "description": "견적 문의 목록" },
+    "/config/main": { "schema": "SiteConfig", "description": "전체 사이트 설정" },
+    "/users/{userId}": { "schema": "User", "description": "사용자 프로필" }
+  }
+}
